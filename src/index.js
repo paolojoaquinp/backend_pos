@@ -23,39 +23,57 @@ app.use(express.urlencoded({ extended: true }));
 // Check database and initialize tables if needed
 const initializeDatabaseTables = async () => {
   try {
+    // Verify connection
+    await db.query('SELECT 1');
+    
     // Check if tables exist
     const tablesResult = await db.query(`
-      SELECT table_name
+      SELECT COUNT(*) as table_count
       FROM information_schema.tables
       WHERE table_schema = 'public'
-      AND table_name IN ('categorias', 'productos', 'usuarios', 'roles', 'usuario_roles', 'ventas', 'detalle_ventas')
+      AND table_name IN ('categorias', 'productos')
     `);
     
-    const existingTables = tablesResult.rows.map(row => row.table_name);
-    console.log('Existing tables:', existingTables.join(', ') || 'None');
+    const tableCount = parseInt(tablesResult.rows[0].table_count);
     
-    // If not all tables exist, try to create them
-    const requiredTables = ['categorias', 'productos', 'usuarios', 'roles', 'usuario_roles', 'ventas', 'detalle_ventas'];
-    const missingTables = requiredTables.filter(table => !existingTables.includes(table));
-    
-    if (missingTables.length > 0) {
-      console.log('Missing tables:', missingTables.join(', '));
-      console.log('Attempting to create database tables...');
-      
-      // Read the SQL script
-      const sqlScript = fs.readFileSync(path.join(__dirname, '../db/db.sql'), 'utf8');
-      
-      // Execute the SQL script
-      await db.query(sqlScript);
-      console.log('Database tables created successfully');
-    } else {
-      console.log('All required database tables exist');
+    // If tables don't exist, create them
+    if (tableCount < 2) {
+      try {
+        // Read the SQL script
+        const sqlScript = fs.readFileSync(path.join(__dirname, '../db/db.sql'), 'utf8');
+        
+        // Execute the SQL script
+        await db.query(sqlScript);
+        console.log('Database initialized successfully');
+      } catch (initError) {
+        console.error('Database initialization failed:', initError.message);
+      }
     }
+    
+    return true;
   } catch (error) {
-    console.error('Error initializing database tables:', error.message);
-    console.log('Please check your database configuration and try again');
+    console.error('Error initializing database:', error.message);
+    return false;
   }
 };
+
+// Middleware to handle database-related errors
+app.use((req, res, next) => {
+  if (req.path === '/health') {
+    // Skip database check for health endpoint
+    return next();
+  }
+  
+  db.query('SELECT 1')
+    .then(() => next())
+    .catch(err => {
+      console.error('Database error during request:', err.message);
+      res.status(503).json({ 
+        success: false, 
+        error: 'Database service unavailable' 
+      });
+    });
+});
 
 // Routes
 app.use('/api/products', productRoutes);
@@ -63,12 +81,22 @@ app.use('/api/categories', categoryRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    time: new Date(), 
-    env: process.env.NODE_ENV,
-    database: process.env.DATABASE_URL ? 'Using connection URI' : 'Using individual parameters'
-  });
+  db.query('SELECT 1')
+    .then(() => {
+      res.json({ 
+        status: 'ok',
+        database: 'connected', 
+        time: new Date().toISOString()
+      });
+    })
+    .catch(err => {
+      res.json({ 
+        status: 'warning',
+        database: 'disconnected',
+        error: err.message,
+        time: new Date().toISOString()
+      });
+    });
 });
 
 // Root route
@@ -80,8 +108,11 @@ app.get('/', (req, res) => {
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   
-  // Initialize database tables
-  await initializeDatabaseTables();
+  // Initialize database tables silently
+  const dbInitialized = await initializeDatabaseTables();
+  if (!dbInitialized) {
+    console.log('Server running without database. Some features may not work.');
+  }
 });
 
 module.exports = app;
