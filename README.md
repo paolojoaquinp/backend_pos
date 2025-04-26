@@ -1,130 +1,119 @@
-# POS Backend Application
+# Backend para aplicación POS Flutter
 
-A backend REST API for a Point of Sale (POS) system built with Express.js and PostgreSQL.
+Backend para el sistema de Punto de Venta creado con Node.js y Express, diseñado para la aplicación móvil Flutter POS.
 
-## Features
+## Importante
 
-- CRUD operations for products and categories
-- RESTful API endpoints
-- PostgreSQL database integration
+**NOTA:** Este proyecto incluye excepcionalmente el archivo `.env` con fines de prueba y demostración. En un entorno de producción, este archivo nunca debería subirse a repositorios públicos. Solo se incluye para facilitar la prueba y ejecución del proyecto.
 
-## Database Schema
+## Tecnologías utilizadas
 
-The database consists of several tables including:
-- Products
-- Categories
-- Users
-- Roles
-- Sales
-- Sales Details
+- **Node.js**: Entorno de ejecución para JavaScript
+- **Express**: Framework para la creación de APIs REST
+- **PostgreSQL**: Base de datos relacional para almacenamiento persistente
+- **Cors**: Middleware para habilitar CORS (Cross-Origin Resource Sharing)
+- **Dotenv**: Para cargar variables de entorno desde un archivo .env
 
-## Getting Started
+## Requisitos previos
 
-### Prerequisites
+- Node.js (v14 o superior)
+- PostgreSQL instalado localmente o acceso a una instancia remota
 
-- Node.js (v14+ recommended)
-- PostgreSQL
+## Cómo iniciar el proyecto
 
-### Installation
+### 1. Clonar el repositorio
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables:
-   Create a `.env` file in the root directory with the following variables:
-   ```
-   # Database Configuration (individual parameters)
-   DB_USER=your_db_user
-   DB_HOST=localhost
-   DB_NAME=pos_db
-   DB_PASSWORD=your_password
-   DB_PORT=5432
-   
-   # Alternative: Database Connection URI
-   # Uncomment and set this to use a connection string instead of individual parameters
-   # DATABASE_URL=postgresql://username:password@hostname:port/database_name
-   
-   # Server Configuration
-   PORT=3000
-   
-   # Environment
-   NODE_ENV=development
-   ```
+```bash
+git clone https://github.com/paolojoaquinp/backend_pos.git
+cd backend_pos
+```
 
-   **Using PostgreSQL URI**: 
-   - If you're connecting to a remote PostgreSQL instance or prefer using a connection URI, set the `DATABASE_URL` variable in the `.env` file.
-   - The URI format is: `postgresql://username:password@hostname:port/database_name`
-   - When `DATABASE_URL` is set, it takes precedence over the individual connection parameters.
-   - For production environments, set `NODE_ENV=production` to enable SSL.
+### 2. Instalar dependencias
 
-4. Set up your PostgreSQL database:
-   - Create a new database named `pos_db`
-   - Run the SQL script in `db/db.sql` to create the tables
+```bash
+npm install
+```
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+### 3. Verificar la configuración de la base de datos
 
-## API Endpoints
+El archivo `.env` ya está incluido con la configuración necesaria. Asegúrate de que la conexión a PostgreSQL esté configurada correctamente:
 
-### Products
+```
+# Conexión a través de URI (Tembo.io - instancia remota)
+DATABASE_URL=postgresql://postgres:eJeRPzrEOO2Z0X5L@beauteously-shapely-dotterel.data-1.use1.tembo.io:5432/postgres?sslmode=require
 
-- `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get a product by ID
-- `GET /api/products/category/:categoryId` - Get products by category
-- `POST /api/products` - Create a new product
-- `PUT /api/products/:id` - Update a product
-- `DELETE /api/products/:id` - Delete a product
+# O configuración local (si prefieres usar PostgreSQL local)
+# DB_USER=postgres
+# DB_HOST=localhost
+# DB_NAME=pos_db
+# DB_PASSWORD=your_password
+# DB_PORT=5432
+```
 
-### Categories
+### 4. Iniciar el servidor
 
-- `GET /api/categories` - Get all categories
-- `GET /api/categories/:id` - Get a category by ID
-- `POST /api/categories` - Create a new category
-- `PUT /api/categories/:id` - Update a category
-- `DELETE /api/categories/:id` - Delete a category
+Para desarrollo (con recarga automática):
+```bash
+npm run dev
+```
 
-## Testing the API
+Para producción:
+```bash
+npm start
+```
 
-### Using Postman
+**IMPORTANTE**: El servidor debe ejecutarse en el puerto 3000 para ser compatible con la aplicación Flutter POS. Verifica que este puerto esté disponible.
 
-1. Import the `postman_collection.json` file into Postman
-2. The collection includes folders for:
-   - Categories CRUD operations
-   - Products CRUD operations
-   - Test data insertion
+## Endpoints API disponibles
 
-### Using cURL
+### Productos
 
-Run the included bash script to test the API endpoints:
+- `GET /api/products` - Obtener todos los productos
+- `GET /api/products/:id` - Obtener un producto por ID
+- `GET /api/products/category/:categoryId` - Obtener productos por categoría
+- `POST /api/products` - Crear un nuevo producto
+- `PUT /api/products/:id` - Actualizar un producto
+- `DELETE /api/products/:id` - Eliminar un producto
+
+### Categorías
+
+- `GET /api/categories` - Obtener todas las categorías
+- `GET /api/categories/:id` - Obtener una categoría por ID
+- `POST /api/categories` - Crear una nueva categoría
+- `PUT /api/categories/:id` - Actualizar una categoría
+- `DELETE /api/categories/:id` - Eliminar una categoría
+
+### Endpoint de salud
+
+- `GET /health` - Verificar el estado del servidor y la conexión a la base de datos
+
+## Prueba de la API
+
+Incluimos un script para probar rápidamente los endpoints:
 
 ```bash
 chmod +x test_api.sh
 ./test_api.sh
 ```
 
-This script will:
-- Create a test category
-- List all categories
-- Get a specific category
-- Update the category
-- Create a test product
-- List all products
-- Get a specific product
-- Get products by category
-- Update the product
+También se incluye una colección de Postman (`postman_collection.json`) que puedes importar para probar la API.
 
-## Deployment
+## Integración con Flutter POS
 
-When deploying to production:
+Este backend es parte del proyecto Flutter POS, una aplicación móvil para punto de venta:
+[https://github.com/paolojoaquinp/flutter_pos](https://github.com/paolojoaquinp/flutter_pos)
 
-1. Set the `DATABASE_URL` environment variable with your PostgreSQL connection string
-2. Set `NODE_ENV=production` to enable SSL for the database connection
-3. Ensure your database has all the required tables created using the SQL script
+Para conectar la aplicación Flutter con este backend:
+1. Asegúrate de que este servidor esté ejecutándose en el puerto 3000
+2. Configura la URL base en la aplicación Flutter para que apunte a `http://TU_IP_LOCAL:3000`
+3. Si estás probando en un emulador, puedes usar `http://10.0.2.2:3000` para Android o `http://localhost:3000` para iOS
 
-## License
+## Estructura de la base de datos
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+El sistema implementa un esquema de base de datos con las siguientes tablas:
+- `categorias`: Para almacenar las categorías de productos
+- `productos`: Para almacenar la información de productos
+- `usuarios` y `roles`: Para la gestión de usuarios (aún no implementado en la API)
+- `ventas` y `detalle_ventas`: Para el registro de ventas (aún no implementado en la API)
+
+La estructura completa de la base de datos se puede encontrar en el archivo `db/db.sql`. 
