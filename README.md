@@ -2,6 +2,11 @@
 
 Backend para el sistema de Punto de Venta creado con Node.js y Express, diseñado para la aplicación móvil Flutter POS.
 
+## Diagrama Entidad-Relación
+
+![Diagrama E-R del proyecto](screenshots/image.png)
+
+
 ## Importante
 
 **NOTA:** Este proyecto incluye excepcionalmente el archivo `.env` con fines de prueba y demostración. En un entorno de producción, este archivo nunca debería subirse a repositorios públicos. Solo se incluye para facilitar la prueba y ejecución del proyecto.
